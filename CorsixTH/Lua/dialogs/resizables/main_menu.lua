@@ -21,9 +21,6 @@ SOFTWARE. --]]
 --! Class for main menu window.
 class "UIMainMenu" (UIResizable)
 
----@type UIMainMenu
-local UIMainMenu = _G["UIMainMenu"]
-
 local col_bg = {
   red = 154,
   green = 146,
@@ -103,7 +100,7 @@ function UIMainMenu:buttonContinueGame()
   else
     local error = _S.errors.load_prefix .. _S.errors.no_games_to_contine
     print(error)
-    self.ui.app.ui:addWindow(UIInformation(self.ui, {error}))
+    self.ui.app.ui:addWindow(UIInformation(self.ui, {error}))  
   end
 end
 

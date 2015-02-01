@@ -289,14 +289,6 @@ static int l_freetype_font_set_face(lua_State *L)
     luaT_setenvfield(L, 1, "face");
     return 1;
 }
-
-static int l_freetype_font_clear_cache(lua_State *L)
-{
-    THFreeTypeFont* pFont = luaT_testuserdata<THFreeTypeFont>(L);
-    pFont->clearCache();
-    return 0;
-}
-
 #endif
 
 static int l_font_get_size(lua_State *L)
@@ -545,39 +537,60 @@ static int l_cursor_position(lua_State *L)
     return 1;
 }
 
-static THRenderTargetCreationParams l_surface_creation_params(lua_State *L, int iArgStart)
-{
-    THRenderTargetCreationParams oParams;
-    oParams.iWidth = luaL_checkint(L, iArgStart);
-    oParams.iHeight = luaL_checkint(L, iArgStart + 1);
-
-    oParams.bFullscreen = false;
-    oParams.bPresentImmediate = false;
-    oParams.bReuseContext = false;
-
-#define FLAG(name, field) \
-    else if(stricmp(sOption, name) == 0) \
-        oParams.field = true
-
-    for(int iArg = iArgStart + 2, iArgCount = lua_gettop(L); iArg <= iArgCount; ++iArg)
-    {
-        const char* sOption = luaL_checkstring(L, iArg);
-        if(sOption[0] == 0)
-            continue;
-        FLAG("fullscreen",          bFullscreen       );
-        FLAG("present immediate",   bPresentImmediate );
-        FLAG("reuse context",       bReuseContext     );
-    }
-
-#undef FLAG
-    return oParams;
-}
-
 static int l_surface_new(lua_State *L)
 {
     lua_remove(L, 1); // Value inserted by __call
 
-    THRenderTargetCreationParams oParams = l_surface_creation_params(L, 1);
+    THRenderTargetCreationParams oParams;
+    oParams.iWidth = luaL_checkint(L, 1);
+    oParams.iHeight = luaL_checkint(L, 2);
+    int iArg = 3;
+    if(lua_type(L, iArg) == LUA_TNUMBER)
+        oParams.iBPP = luaL_checkint(L, iArg++);
+    else
+        oParams.iBPP = 0;
+    oParams.iSDLFlags = 0;
+    oParams.bHardware = false;
+    oParams.bDoubleBuffered = false;
+    oParams.bFullscreen = false;
+    oParams.bPresentImmediate = false;
+    oParams.bReuseContext = false;
+    oParams.bOpenGL = false;
+
+#define FLAG(name, field, flag) \
+    else if(stricmp(sOption, name) == 0) \
+        oParams.field = true, oParams.iSDLFlags |= flag
+
+    for(int iArgCount = lua_gettop(L); iArg <= iArgCount; ++iArg)
+    {
+        const char* sOption = luaL_checkstring(L, iArg);
+        if(sOption[0] == 0)
+            continue;
+        FLAG("hardware"         , bHardware        , SDL_HWSURFACE );
+        FLAG("doublebuf"        , bDoubleBuffered  , SDL_DOUBLEBUF );
+        FLAG("fullscreen"       , bFullscreen      , SDL_FULLSCREEN);
+        FLAG("present immediate", bPresentImmediate, 0             );
+        FLAG("reuse context"    , bReuseContext    , 0             );
+        FLAG("opengl"           , bOpenGL          , SDL_OPENGL    );
+    }
+
+#undef FLAG
+
+#ifndef CORSIX_TH_USE_DX9_RENDERER
+    if(SDL_WasInit(SDL_INIT_VIDEO))
+    {
+        char *sTitle, *sIcon;
+        SDL_WM_GetCaption(&sTitle, &sIcon);
+        if(sTitle) sTitle = strdup(sTitle);
+        if(sIcon) sIcon = strdup(sIcon);
+        SDL_QuitSubSystem(SDL_INIT_VIDEO);
+        SDL_InitSubSystem(SDL_INIT_VIDEO);
+        SDL_WM_SetCaption(sTitle, sIcon);
+        if(sTitle) free(sTitle);
+        if(sIcon) free(sIcon);
+    }
+#endif
+
     THRenderTarget* pCanvas = luaT_stdnew<THRenderTarget>(L);
     if(pCanvas->create(&oParams))
         return 1;
@@ -585,28 +598,6 @@ static int l_surface_new(lua_State *L)
     lua_pushnil(L);
     lua_pushstring(L, pCanvas->getLastError());
     return 2;
-}
-
-static int l_surface_update(lua_State *L)
-{
-    THRenderTarget* pCanvas = luaT_testuserdata<THRenderTarget>(L);
-    THRenderTargetCreationParams oParams = l_surface_creation_params(L, 2);
-    if(pCanvas->update(&oParams))
-    {
-        lua_pushnil(L);
-        return 1;
-    }
-
-    lua_pushstring(L, pCanvas->getLastError());
-    return 1;
-}
-
-static int l_surface_destroy(lua_State *L)
-{
-    THRenderTarget* pCanvas = luaT_testuserdata<THRenderTarget>(L);
-    pCanvas->endFrame();
-    pCanvas->destroy();
-    return 1;
 }
 
 static int l_surface_fill_black(lua_State *L)
@@ -754,22 +745,6 @@ static int l_surface_scale(lua_State *L)
     return 1;
 }
 
-static int l_surface_set_caption(lua_State *L)
-{
-    THRenderTarget* pCanvas = luaT_testuserdata<THRenderTarget>(L);
-    pCanvas->setCaption(luaL_checkstring(L, 2));
-
-    lua_settop(L, 1);
-    return 1;
-}
-
-static int l_surface_get_renderer_details(lua_State *L)
-{
-    THRenderTarget* pCanvas = luaT_testuserdata<THRenderTarget>(L);
-    lua_pushstring(L, pCanvas->getRendererDetails());
-    return 1;
-}
-
 static int l_line_new(lua_State *L)
 {
     luaT_stdnew<THLine>(L);
@@ -891,7 +866,6 @@ void THLuaRegisterGfx(const THLuaRegisterState_t *pState)
     luaT_setfunction(l_freetype_font_set_spritesheet, "setSheet", MT_Sheet);
     luaT_setfunction(l_freetype_font_set_face, "setFace");
     luaT_setfunction(l_freetype_font_get_copyright, "getCopyrightNotice");
-    luaT_setfunction(l_freetype_font_clear_cache, "clearCache");
     luaT_endclass();
 #endif
 
@@ -912,8 +886,6 @@ void THLuaRegisterGfx(const THLuaRegisterState_t *pState)
 
     // Surface
     luaT_class(THRenderTarget, l_surface_new, "surface", MT_Surface);
-    luaT_setfunction(l_surface_update, "update");
-    luaT_setfunction(l_surface_destroy, "destroy");
     luaT_setfunction(l_surface_fill_black, "fillBlack");
     luaT_setfunction(l_surface_start_frame, "startFrame");
     luaT_setfunction(l_surface_end_frame, "endFrame");
@@ -925,8 +897,6 @@ void THLuaRegisterGfx(const THLuaRegisterState_t *pState)
     luaT_setfunction(l_surface_set_clip, "setClip");
     luaT_setfunction(l_surface_screenshot, "takeScreenshot");
     luaT_setfunction(l_surface_scale, "scale");
-    luaT_setfunction(l_surface_set_caption, "setCaption");
-    luaT_setfunction(l_surface_get_renderer_details, "getRendererDetails");
     luaT_endclass();
 
     // Line

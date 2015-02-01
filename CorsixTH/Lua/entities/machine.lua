@@ -23,9 +23,6 @@ local TH = require "TH"
 --! An `Object` which needs occasional repair (to prevent explosion).
 class "Machine" (Object)
 
----@type Machine
-local Machine = _G["Machine"]
-
 function Machine:Machine(world, object_type, x, y, direction, etc)
 
   self.total_usage = -1 -- Incremented in the constructor of Object.

@@ -21,9 +21,6 @@ SOFTWARE. --]]
 --! A `Vip` who is in the hospital to evaluate the hospital and produce a report
 class "Vip" (Humanoid)
 
----@type Vip
-local Vip = _G["Vip"]
-
 function Vip:Vip(...)
   self:Humanoid(...)
   self.hover_cursor = TheApp.gfx:loadMainCursor("default")

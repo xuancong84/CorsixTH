@@ -23,9 +23,6 @@ local lfs = require "lfs"
 --! A tree node representing a directory in the physical file-system.
 class "DirTreeNode" (FileTreeNode)
 
----@type DirTreeNode
-local DirTreeNode = _G["DirTreeNode"]
-
 local pathsep = package.config:sub(1, 1)
 
 function DirTreeNode:DirTreeNode(path)
@@ -55,9 +52,6 @@ end
 
 --! This tree only shows directories and highlights valid TH directories.
 class "InstallDirTreeNode" (DirTreeNode)
-
----@type InstallDirTreeNode
-local InstallDirTreeNode = _G["InstallDirTreeNode"]
 
 function InstallDirTreeNode:InstallDirTreeNode(path)
   self:FileTreeNode(path)
@@ -103,9 +97,6 @@ end
 --! Prompter for Theme Hospital install directory
 class "UIDirectoryBrowser" (UIResizable)
 
----@type UIDirectoryBrowser
-local UIDirectoryBrowser = _G["UIDirectoryBrowser"]
-
 --! Creates a new directory browser window
 --!param ui The active UI to hook into.
 --!param mode Whether the dialog has been opened from the main_menu or somewhere else. Currently
@@ -146,7 +137,7 @@ function UIDirectoryBrowser:UIDirectoryBrowser(ui, mode, instruction, treenode_c
   else
     self.font = ui.app.gfx:loadBuiltinFont()
     self:setDefaultPosition(0.05, 0.5)
-    self:addKeyHandler("escape", self.exit)
+    self:addKeyHandler("esc", self.exit)
     self.exit_button:setLabel(_S.install.exit, self.font):makeButton(0, 0, 100, 18, nil, self.exit)
   end
 

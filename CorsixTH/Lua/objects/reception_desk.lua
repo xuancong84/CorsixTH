@@ -70,9 +70,6 @@ dofile "queue"
 
 class "ReceptionDesk" (Object)
 
----@type ReceptionDesk
-local ReceptionDesk = _G["ReceptionDesk"]
-
 function ReceptionDesk:ReceptionDesk(...)
   self:Object(...)
   self.queue = Queue()

@@ -29,9 +29,6 @@ local ipairs
 --! Layer which handles the Lua-facing side of loading and playing audio.
 class "Audio"
 
----@type Audio
-local Audio = _G["Audio"]
-
 function Audio:Audio(app)
   self.app = app
 
@@ -621,7 +618,7 @@ function Audio:playBackgroundTrack(index)
 end
 
 function Audio:onMusicOver()
-  if self.not_loaded or #self.background_playlist == 0 or self.background_music == nil then
+  if self.not_loaded or #self.background_playlist == 0 then
     return
   end
   self:playNextBackgroundTrack()

@@ -21,9 +21,6 @@ SOFTWARE. --]]
 --! Dialog for "Are you sure you want to quit?" and similar yes/no questions.
 class "UIConfirmDialog" (Window)
 
----@type UIConfirmDialog
-local UIConfirmDialog = _G["UIConfirmDialog"]
-
 function UIConfirmDialog:UIConfirmDialog(ui, text, callback_ok, callback_cancel)
   self:Window()
 
@@ -59,7 +56,7 @@ function UIConfirmDialog:UIConfirmDialog(ui, text, callback_ok, callback_cancel)
   self:addPanel(362, 90, last_y + 10):makeButton(0, 10, 82, 34, 363, self.ok)
     :setTooltip(_S.tooltip.window_general.confirm):setSound"YesX.wav"
 
-  self:addKeyHandler("return", self.ok)
+  self:addKeyHandler("Enter", self.ok)
 end
 
 function UIConfirmDialog:cancel()
@@ -91,11 +88,4 @@ function UIConfirmDialog:draw(canvas, x, y)
 
   x, y = x + self.x, y + self.y
   self.white_font:drawWrapped(canvas, self.text, x + 17, y + 17, 153)
-end
-
-function UIConfirmDialog:afterLoad(old, new)
-  if old < 101 then
-    self:removeKeyHandler("enter")
-    self:addKeyHandler("return", self.ok)
-  end
 end

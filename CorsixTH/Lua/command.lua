@@ -20,9 +20,6 @@ SOFTWARE. --]]
 
 class "Command"
 
----@type Command
-local Command = _G["Command"]
-
 function Command:Command(can_undo)
   self.can_undo = can_undo
 end

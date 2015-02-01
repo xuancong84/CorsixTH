@@ -19,10 +19,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. --]]
 
 class "GrimReaper" (Humanoid)
-
----@type GrimReaper
-local GrimReaper = _G["GrimReaper"]
-
 local TH = require "TH"
 
 function GrimReaper:GrimReaper(...)

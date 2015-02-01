@@ -21,9 +21,6 @@ SOFTWARE. --]]
 --! Iterface for items within a UI tree control
 class "TreeNode"
 
----@type TreeNode
-local TreeNode = _G["TreeNode"]
-
 function TreeNode:TreeNode()
   self.is_expanded = false
   self.num_visible_descendants = 0
@@ -183,9 +180,6 @@ end
 
 --! A tree node representing a file (or directory) in the physical file-system.
 class "FileTreeNode" (TreeNode)
-
----@type FileTreeNode
-local FileTreeNode = _G["FileTreeNode"]
 
 local pathsep = package.config:sub(1, 1)
 
@@ -450,9 +444,6 @@ end
 -- multiple root nodes.
 class "DummyRootNode" (TreeNode)
 
----@type DummyRootNode
-local DummyRootNode = _G["DummyRootNode"]
-
 --!param roots (array) An array of `TreeNode`s which should be displayed as
 -- root nodes.
 function DummyRootNode:DummyRootNode(roots)
@@ -482,9 +473,6 @@ end
 --! A control (to be placed on a window) which allows the user to navigate a
 -- tree of items and select one item from it.
 class "TreeControl" (Window)
-
----@type TreeControl
-local TreeControl = _G["TreeControl"]
 
 --!param root (TreeNode) The single root node of the tree (use a `DummyRootNode`
 -- here if multiple root nodes are desired).
@@ -606,31 +594,32 @@ end
 
 function TreeControl:onMouseUp(button, x, y)
   local redraw = Window.onMouseUp(self, button, x, y)
-  local node, expand = self:hitTestTree(x, y)
-  if self.mouse_down_in_self and node then
-    if expand then
-      if node:hasChildren() then
-        if node:isExpanded() then
-          node:contract()
-        else
-          node:expand()
+  if button == 4 or button == 5 then
+    -- Scrollwheel
+    self.scrollbar:setXorY(self.scrollbar:getXorY() + (button - 4.5) * 8)
+  else
+    local node, expand = self:hitTestTree(x, y)
+    if self.mouse_down_in_self and node then
+      if expand then
+        if node:hasChildren() then
+          if node:isExpanded() then
+            node:contract()
+          else
+            node:expand()
+          end
+          redraw = true
         end
+      elseif self.selected_node == node and self.select_callback then
+        self.select_callback(node)
+      else
+        self.selected_node = node
+        node:select()
         redraw = true
       end
-    elseif self.selected_node == node and self.select_callback then
-      self.select_callback(node)
-    else
-      self.selected_node = node
-      node:select()
-      redraw = true
     end
+    self.mouse_down_in_self = false
   end
-  self.mouse_down_in_self = false
   return redraw
-end
-
-function TreeControl:onMouseWheel(x, y)
-  self.scrollbar:setXorY(self.scrollbar:getXorY() - y * 8)
 end
 
 function TreeControl:onNumVisibleNodesChange()

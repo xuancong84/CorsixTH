@@ -39,10 +39,6 @@ object.orientations = {
 }
 
 class "SurgeonScreen" (Object)
-
----@type SurgeonScreen
-local SurgeonScreen = _G["SurgeonScreen"]
-
 function SurgeonScreen:SurgeonScreen(...)
   self:Object(...)
   self.num_green_outfits = 2

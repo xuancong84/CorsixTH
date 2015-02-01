@@ -38,9 +38,6 @@ dofile "entity_map"
 --! Manages entities, rooms, and the date.
 class "World"
 
----@type World
-local World = _G["World"]
-
 local local_criteria_variable = {
   {name = "reputation",       icon = 10, formats = 2},
   {name = "balance",          icon = 11, formats = 2},
@@ -189,8 +186,6 @@ function World:setUI(ui)
   self.ui:addKeyHandler("4", self, self.setSpeed, "Max speed")
   self.ui:addKeyHandler("5", self, self.setSpeed, "And then some more")
 
-  self.ui:addKeyHandler("=", self, self.adjustZoom,  1)
-  self.ui:addKeyHandler({"shift", "="}, self, self.adjustZoom, 5)
   self.ui:addKeyHandler("+", self, self.adjustZoom,  1)
   self.ui:addKeyHandler({"shift", "+"}, self, self.adjustZoom, 5)
   self.ui:addKeyHandler("-", self, self.adjustZoom, -1)
@@ -981,7 +976,7 @@ function World:setSpeed(speed)
   local numerator, denominator = unpack(tick_rates[speed])
   self.hours_per_tick = numerator
   self.tick_rate = denominator
-
+  
   if was_paused then
     TheApp.audio:onEndPause()
   end
@@ -2010,7 +2005,7 @@ function World:isFootprintTileBuildableOrPassable(x, y, tile, footprint, require
   end
 end
 
----
+--- 
 -- Check that pathfinding still works, i.e. that placing the object
 -- wouldn't disconnect one part of the hospital from another. To do
 -- this, we provisionally mark the footprint as unpassable (as it will

@@ -20,9 +20,6 @@ SOFTWARE. --]]
 
 class "SetMapCellFlagsCommand" (Command)
 
----@type SetMapCellFlagsCommand
-local SetMapCellFlagsCommand = _G["SetMapCellFlagsCommand"]
-
 function SetMapCellFlagsCommand:SetMapCellFlagsCommand(map)
   self:Command(true)
   self.map = map

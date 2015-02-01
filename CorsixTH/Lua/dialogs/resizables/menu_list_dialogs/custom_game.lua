@@ -23,9 +23,6 @@ local pathsep = package.config:sub(1, 1)
 --! Custom Game Window
 class "UICustomGame" (UIMenuList)
 
----@type UICustomGame
-local UICustomGame = _G["UICustomGame"]
-
 function UICustomGame:UICustomGame(ui)
 
   -- Supply the required list of items to UIMenuList

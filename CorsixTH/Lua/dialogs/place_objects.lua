@@ -30,9 +30,6 @@ local ATTACH_BLUEPRINT_TO_TILE = false
 --! The dialog shown when placing objects.
 class "UIPlaceObjects" (Window)
 
----@type UIPlaceObjects
-local UIPlaceObjects = _G["UIPlaceObjects"]
-
 --[[ Constructor for the class.
 !param ui (UI) The active ui.
 !param object_list (table) a list of tables with objects to place. Keys are "object", "qty" and
@@ -67,7 +64,7 @@ function UIPlaceObjects:UIPlaceObjects(ui, object_list, pay_for)
   end
   self:addPanel(114,   0, 90) -- Dialog mid-piece
   self:addPanel(115,   0, 100):makeButton(9, 8, 41, 42, 116, self.cancel):setSound"no4.wav":setTooltip(_S.tooltip.place_objects_window.cancel)
-  self:addKeyHandler("escape", self.cancel)
+  self:addKeyHandler("esc", self.cancel)
   self.purchase_button =
   self:addPanel(117,  50, 100):makeButton(1, 8, 41, 42, 118, self.purchaseItems):setTooltip(_S.tooltip.place_objects_window.buy_sell)
     :setDisabledSprite(127):enable(false) -- Disabled purchase items button
@@ -86,7 +83,7 @@ function UIPlaceObjects:UIPlaceObjects(ui, object_list, pay_for)
   self.num_slots = 0
 
   self:addObjects(object_list, pay_for)
-  self:addKeyHandler("space", self.tryNextOrientation)
+  self:addKeyHandler(" ", self.tryNextOrientation)
 
   ui:setWorldHitTest(false)
 end
@@ -655,7 +652,7 @@ function UIPlaceObjects:setBlueprintCell(x, y)
           is_object_allowed = map:getCellFlags(x, y, flags)[flag]
         end
 
-        -- Having checked if the tile is good set its blueprint appearance flag:
+        -- Having checked if the tile is good set its blueprint appearance flag: 
         if is_object_allowed then
           if not tile.invisible then
             map:setCell(x, y, 4, good_tile)

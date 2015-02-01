@@ -20,9 +20,6 @@ SOFTWARE. --]]
 
 class "UIMakeDebugPatient" (UIMenuList)
 
----@type UIMakeDebugPatient
-local UIMakeDebugPatient = _G["UIMakeDebugPatient"]
-
 function UIMakeDebugPatient:UIMakeDebugPatient(ui)
   local items = {}
   for _, disease in ipairs(ui.app.diseases) do

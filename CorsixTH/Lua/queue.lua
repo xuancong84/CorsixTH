@@ -30,9 +30,6 @@ SOFTWARE. --]]
 -- a queue via its methods rather than directly.
 class "Queue"
 
----@type Queue
-local Queue = _G["Queue"]
-
 function Queue:Queue()
   self.reported_size = 0
   self.expected = {}

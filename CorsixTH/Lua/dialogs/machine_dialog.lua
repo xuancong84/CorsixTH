@@ -20,9 +20,6 @@ SOFTWARE. --]]
 
 class "UIMachine" (Window)
 
----@type UIMachine
-local UIMachine = _G["UIMachine"]
-
 function UIMachine:UIMachine(ui, machine, room)
   self:Window()
 

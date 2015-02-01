@@ -124,8 +124,6 @@ local config_defaults = {
   track_fps = false,
   zoom_speed = 80,
   scroll_speed = 2,
-  new_graphics_folder = nil,
-  use_new_graphics = false,
   check_for_updates = true
 }
 local fi = io.open(config_filename, "r")
@@ -220,13 +218,13 @@ if needs_rewrite then
 ----------------------------------------------- OPTIONS MENU ---------------------------------------------------
 --These settings can also be changed from within the game from the options menu
 -------------------------------------------------------------------------------------------------------------------------
--- Sounds: By default enabled and set at level 0.5
--- ]=] .. '\n' ..
+-- Sounds: By default enabled and set at level 0.5 
+-- ]=] .. '\n' .. 
 'play_sounds = ' .. tostring(config_values.play_sounds) .. '\n' ..
 'sound_volume = ' .. tostring(config_values.sound_volume) .. '\n' .. [=[
 
 -------------------------------------------------------------------------------------------------------------------------
--- Announcements: By default set at level 0.5
+-- Announcements: By default set at level 0.5 
 -- ]=] .. '\n' ..
 'play_announcements = ' .. tostring(config_values.play_announcements) .. '\n' ..
 'announcement_volume = ' .. tostring(config_values.announcement_volume) .. '\n' .. [=[
@@ -251,7 +249,7 @@ if needs_rewrite then
 -------------------------------------------------------------------------------------------------------------------------
 -- Scrolling Momentum.
 -- Determines the amount of momentum when scrolling the map with the mouse.
--- This should be a value between 0 and 1 where 0 is no momentum
+-- This should be a value between 0 and 1 where 0 is no momentum 
 -- ]=] .. '\n' ..
 'scrolling_momentum = ' .. tostring(config_values.scrolling_momentum) .. '\n' .. [=[
 
@@ -356,27 +354,13 @@ if needs_rewrite then
 --
 unicode_font = nil -- [[X:\ThemeHospital\font.ttc]]
 
--------------------------------------------------------------------------------------------------------------------------
+ -------------------------------------------------------------------------------------------------------------------------
 -- Savegames. By default, the "Saves" directory alongside this config file will
 -- be used for storing saved games in. Should this not be suitable, then
 -- uncomment the following line, and point it to a directory which exists and
 -- is more suitable.
 --
 savegames = nil -- [[X:\ThemeHospital\Saves]]
-
- ------------------------------------------------------------------------------------------------------------------------
--- Use new graphics. Whether to use the original graphics from Theme Hospital
--- or use new graphics created by the CorsixTH project.
-use_new_graphics = false
-
--------------------------------------------------------------------------------------------------------------------------
--- Graphics folder. All graphics are initially taken from the original Theme Hospital,
--- but the game can also try to find new graphics in the specified folder below.
--- Some graphics are shipped with CorsixTH, and they will be used if you just switch
--- on new graphics. If you however have acquired graphics from somewhere else, then
--- uncomment the following line and point it to the directory which contains the new
--- graphics.
-new_graphics_folder = nil -- [[X:\ThemeHospital\Graphics]]
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Screenshots. By default, the "Screenshots" directory alongside this config

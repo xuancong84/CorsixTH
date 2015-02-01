@@ -20,9 +20,6 @@ SOFTWARE. --]]
 
 class "CallsDispatcher"
 
----@type CallsDispatcher
-local CallsDispatcher = _G["CallsDispatcher"]
-
 local debug = false -- Turn on for debug message
 
 function CallsDispatcher:CallsDispatcher(world, entities)
@@ -61,7 +58,7 @@ function CallsDispatcher:callForStaff(room)
   end
   local sound = room.room_info.call_sound
   if anyone_missed and sound and not room.sound_played then
-    room.world.ui:playAnnouncement(sound,nil,nil,room)
+    room.world.ui:playAnnouncement(sound)
     room.sound_played = true
   end
 end
@@ -120,7 +117,7 @@ function CallsDispatcher:callForRepair(object, urgent, manual, lock_room)
     local room = object:getRoom();
     local sound = room.room_info.handyman_call_sound
     if sound then
-      ui:playAnnouncement(sound,nil,nil,room)
+      ui:playAnnouncement(sound)
       ui:playSound "machwarn.wav"
     end
     message = _A.warnings.machines_falling_apart
@@ -334,8 +331,8 @@ function CallsDispatcher:answerCall(staff)
   local min_call = nil
   local min_key = nil
   assert(not staff.on_call, "Staff should be idea before he can answer another call")
-  assert(staff.hospital, "Staff should still be a member of the hospital to answer a call");
-
+  assert(staff.hospital, "Staff should still be a member of the hospital to answer a call"); 
+  
   if staff.humanoid_class == "Handyman" then
    staff:searchForHandymanTask()
    return true

@@ -21,9 +21,6 @@ SOFTWARE. --]]
 --! Class for the difficulty choice window.
 class "UINewGame" (UIResizable)
 
----@type UINewGame
-local UINewGame = _G["UINewGame"]
-
 local col_bg = {
   red = 154,
   green = 146,

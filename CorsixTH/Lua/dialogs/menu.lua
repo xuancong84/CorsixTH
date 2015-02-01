@@ -25,9 +25,6 @@ local TH = require "TH"
 --! The ingame menu bar which sits (nominally hidden) at the top of the screen.
 class "UIMenuBar" (Window)
 
----@type UIMenuBar
-local UIMenuBar = _G["UIMenuBar"]
-
 function UIMenuBar:UIMenuBar(ui)
   self:Window()
 
@@ -457,9 +454,6 @@ function UIMenuBar:calculateMenuSize(menu)
 end
 
 class "UIMenu"
-
----@type UIMenu
-local UIMenu = _G["UIMenu"]
 
 function UIMenu:UIMenu()
   self.items = {}

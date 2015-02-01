@@ -20,9 +20,6 @@ SOFTWARE. --]]
 
 class "UIFax" (UIFullscreen)
 
----@type UIFax
-local UIFax = _G["UIFax"]
-
 function UIFax:UIFax(ui, icon)
   self:UIFullscreen(ui)
   local gfx = ui.app.gfx

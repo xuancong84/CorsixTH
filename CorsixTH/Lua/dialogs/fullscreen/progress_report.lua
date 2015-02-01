@@ -23,9 +23,6 @@ local TH = require "TH"
 --! Progress Report fullscreen window (check level goals, competitors and alerts).
 class "UIProgressReport" (UIFullscreen)
 
----@type UIProgressReport
-local UIProgressReport = _G["UIProgressReport"]
-
 function UIProgressReport:UIProgressReport(ui)
   -- TODO: Refactor this file!
   self:UIFullscreen(ui)

@@ -26,15 +26,12 @@ dofile "dialogs/place_objects"
 
 class "UIEditRoom" (UIPlaceObjects)
 
----@type UIEditRoom
-local UIEditRoom = _G["UIEditRoom"]
-
 function UIEditRoom:UIEditRoom(ui, room_type)
 
   -- NB: UIEditRoom:onCursorWorldPositionChange is called by the UIPlaceObjects
   -- constructor, hence the initialisation of required fields prior to the call.
   self.UIPlaceObjects(self, ui)
-  self:addKeyHandler("return", self.confirm) -- UIPlaceObjects does not need this
+  self:addKeyHandler("Enter", self.confirm) -- UIPlaceObjects does not need this
 
   local app = ui.app
   -- Set alt palette on wall blueprint to make it red
@@ -1413,12 +1410,5 @@ function UIEditRoom:placeObject()
   local obj = UIPlaceObjects.placeObject(self, true)
   if obj then
     self:checkEnableConfirm()
-  end
-end
-
-function UIEditRoom:afterLoad(old, new)
-  if old < 101 then
-    self:removeKeyHandler("enter")
-    self:addKeyHandler("return", self.confirm)
   end
 end

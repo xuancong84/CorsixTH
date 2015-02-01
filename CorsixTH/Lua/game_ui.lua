@@ -23,9 +23,6 @@ dofile "ui"
 --! Variant of UI for running games
 class "GameUI" (UI)
 
----@type GameUI
-local GameUI = _G["GameUI"]
-
 local TH = require "TH"
 local WM = require "sdl".wm
 local SDL = require "sdl"
@@ -79,8 +76,8 @@ end
 function GameUI:setupGlobalKeyHandlers()
   UI.setupGlobalKeyHandlers(self)
 
-  self:addKeyHandler("escape", self, self.setEditRoom, false)
-  self:addKeyHandler("escape", self, self.showMenuBar)
+  self:addKeyHandler("esc", self, self.setEditRoom, false)
+  self:addKeyHandler("esc", self, self.showMenuBar)
   self:addKeyHandler("z", self, self.keySpeedUp)
   self:addKeyHandler("x", self, self.keyTransparent)
   self:addKeyHandler({"shift", "a"}, self, self.toggleAdviser)
@@ -196,6 +193,8 @@ function GameUI:resync(ui)
 
   self.key_remaps = ui.key_remaps
   self.key_to_button_remaps = ui.key_to_button_remaps
+  self.key_codes = ui.key_codes
+  self.key_code_to_rawchar = ui.key_code_to_rawchar
 end
 
 local scroll_keys = {
@@ -223,38 +222,43 @@ function GameUI:updateKeyScroll()
 end
 
 function GameUI:keySpeedUp()
-  self.speed_up_key_pressed = true
-  self.app.world:speedUp()
+  if self.key_codes[122] then
+    self.speed_up_key_pressed = true
+    self.app.world:speedUp()
+  end
 end
 
 function GameUI:keyTransparent()
-  self:makeTransparentWalls()
+  if self.key_codes[120] then
+    self:makeTransparentWalls()
+  end
 end
 
-function GameUI:onKeyDown(rawchar, modifiers, is_repeat)
-  if UI.onKeyDown(self, rawchar, modifiers, is_repeat) then
+function GameUI:onKeyDown(code, rawchar)
+  if UI.onKeyDown(self, code, rawchar) then
     -- Key has been handled already
     return true
   end
-  local key = rawchar:lower()
+  rawchar = self.key_code_to_rawchar[code] -- UI may have translated rawchar
+  local key = self:_translateKeyCode(code, rawchar)
   if scroll_keys[key] then
     self:updateKeyScroll()
     return
   end
 end
 
-function GameUI:onKeyUp(rawchar)
-  if UI.onKeyUp(self, rawchar) then
+function GameUI:onKeyUp(code)
+  local rawchar = self.key_code_to_rawchar[code] or ""
+  if UI.onKeyUp(self, code) then
     return true
   end
-
-  local key = rawchar:lower()
+  local key = self:_translateKeyCode(code, rawchar)
   if scroll_keys[key] then
     self:updateKeyScroll()
     return
   end
 
-  -- Guess that the "Speed Up" key was released because the
+  -- Guess that the "Speed Up" key was released because the 
   -- code parameter can't provide UTF-8 key codes:
   self.speed_up_key_pressed = false
   if self.app.world:isCurrentSpeed("Speed Up") then
@@ -504,6 +508,18 @@ function GameUI:onMouseUp(code, x, y)
     return UI.onMouseUp(self, code, x, y)
   end
 
+  if code == 4 or code == 5 then
+    -- Mouse wheel
+    local window = self:getWindow(UIFullscreen)
+    if not window or not window:hitTest(x - window.x, y - window.y) then
+
+      -- Apply momentum to the zoom
+      if math.abs(self.current_momentum.z) < 12 then
+        self.current_momentum.z = self.current_momentum.z + (4.5 - code)*2
+      end
+    end
+  end
+
   local button = self.button_codes[code]
   if button == "right" and not _MAP_EDITOR and highlight_x then
     local window = self:getWindow(UIPatient)
@@ -557,50 +573,14 @@ function GameUI:onMouseUp(code, x, y)
   return UI.onMouseUp(self, code, x, y)
 end
 
-function GameUI:onMouseWheel(x, y)
-  local inside_window = false
-  if self.windows then
-    for _, window in ipairs(self.windows) do
-      if window:hitTest(self.cursor_x - window.x, self.cursor_y - window.y) then
-        inside_window = true
-        break
-      end
-    end
-  end
-  if not inside_window then
-    -- Apply momentum to the zoom
-    if math.abs(self.current_momentum.z) < 12 then
-      self.current_momentum.z = self.current_momentum.z + y
-    end
-  end
-  return UI.onMouseWheel(self, x, y)
-end
-
 function GameUI:setRandomAnnouncementTarget()
   -- NB: Every tick is 30ms, so 2000 ticks is 1 minute
   self.random_announcement_ticks_target = math.random(8000, 12000)
 end
 
-function GameUI:playAnnouncement(name, played_callback, played_callback_delay, room)
+function GameUI:playAnnouncement(name, played_callback, played_callback_delay)
   self.ticks_since_last_announcement = 0
   if self.app.world:getLocalPlayerHospital():hasStaffedDesk() then
-    if room then
-      if self.center_view_xy then
-        local x,y
-        x,y = self.app.map:WorldToScreen(room.x+room.width/2, room.y+room.height/2)
-        table.insert(self.center_view_xy, 1, y)
-        table.insert(self.center_view_xy, 1, x)
-        if #self.center_view_xy > 10 then
-          table.remove(self.center_view_xy, 11)
-          table.remove(self.center_view_xy, 11)
-        end
-      else
-        self.center_view_xy = {self.app.map:WorldToScreen(room.x+room.width/2, room.y+room.height/2)}
--- add handlers here so that loaded old-version game can centerView, should add in setupGlobalKeyHandlers in principle
-        self:addKeyHandler("space", self, self.scrollTowardsView)
-        self:addKeyHandler("tab", self, self.centerView)
-      end
-    end
     UI.playAnnouncement(self, name, played_callback, played_callback_delay)
   end
 end
@@ -661,7 +641,7 @@ function GameUI:onTick()
 
     -- Faster scrolling with shift key
     local factor = self.app.config.scroll_speed
-    if self.app.key_modifiers.shift then
+    if self.buttons_down.shift then
       mult = mult * factor
     end
 
@@ -670,18 +650,6 @@ function GameUI:onTick()
   else
     self.tick_scroll_mult = 1
   end
-  
-  --handle scroll towards view
-  if self.scroll_towards_xy then
-    self:scrollMapTo(self.scroll_towards_xy[1],self.scroll_towards_xy[2])
-    if #self.scroll_towards_xy > 2 then
-      table.remove(self.scroll_towards_xy,1)
-      table.remove(self.scroll_towards_xy,1)
-    else
-      self.scroll_towards_xy = nil
-    end
-  end
-  
   if self:onCursorWorldPositionChange() then
     repaint = true
   end
@@ -695,48 +663,6 @@ function GameUI:scrollMapTo(x, y)
   local config = self.app.config
   return self:scrollMap(x - self.screen_offset_x - config.width / zoom,
                         y - self.screen_offset_y - config.height / zoom)
-end
-
-function GameUI:scrollMapTowards(x, y)
-  local zoom = 2 * self.zoom_factor
-  local config = self.app.config
-  local dx=x-self.screen_offset_x-config.width/zoom
-  local dy=y-self.screen_offset_y-config.height/zoom
-  local dist=(dx^2+dy^2)^0.5
-  local scroll_speed=100
-  if dist<=scroll_speed then
-    return self:scrollMapTo(x,y)
-  end
-  local dist2=dist
-  self.scroll_towards_xy={}
-  while dist2>scroll_speed do
-    dist2=dist2-scroll_speed
-    local r=dist2/dist
-    table.insert(self.scroll_towards_xy, x-dx*r)
-    table.insert(self.scroll_towards_xy, y-dy*r)
-  end
-  table.insert(self.scroll_towards_xy, x)
-  table.insert(self.scroll_towards_xy, y)
-end
-
-function GameUI:centerView()
-  if self.center_view_xy then
-    self:scrollMapTo(self.center_view_xy[1], self.center_view_xy[2])
-    if #self.center_view_xy > 2 then
-      table.remove(self.center_view_xy,1)
-      table.remove(self.center_view_xy,1)
-    end
-  end
-end
-
-function GameUI:scrollTowardsView()
-  if self.center_view_xy and not self.scroll_towards_xy then
-    self:scrollMapTowards(self.center_view_xy[1], self.center_view_xy[2])
-    if #self.center_view_xy > 2 then
-      table.remove(self.center_view_xy,1)
-      table.remove(self.center_view_xy,1)
-    end
-  end
 end
 
 function GameUI.limitPointToDiamond(dx, dy, visible_diamond, do_limit)

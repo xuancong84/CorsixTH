@@ -27,18 +27,19 @@ SOFTWARE.
 #include "xmi2mid.h"
 #include <SDL_mixer.h>
 #ifdef _MSC_VER
-#pragma comment(lib, "SDL2_mixer")
+#pragma comment(lib, "SDL_mixer")
 #pragma warning(disable: 4996) // CRT deprecation
 #endif
-#include <cstring>
 
 struct music_t
 {
     Mix_Music* pMusic;
+    SDL_RWops* pRWop;
 
     music_t()
     {
         pMusic = NULL;
+        pRWop = NULL;
     }
 
     ~music_t()
@@ -47,6 +48,15 @@ struct music_t
         {
             Mix_FreeMusic(pMusic);
             pMusic = NULL;
+        }
+        if(pRWop)
+        {
+            // Some SDL_Mixer backends will free this for you, and some will
+            // not. As we do not know what the backend will do, we have to do
+            // the same in every case, and a minor memory leak is less serious
+            // (see http://code.google.com/p/corsix-th/issues/detail?id=3).
+            //SDL_FreeRW(pRWop);
+            pRWop = NULL;
         }
     }
 };
@@ -130,10 +140,14 @@ static int l_load_music_async_callback(lua_State *L)
             lua_xmove(L, cbL, 1);
         music_t* pLMusic = (music_t*)lua_touserdata(cbL, -1);
         pLMusic->pMusic = async->music;
+        pLMusic->pRWop = async->rwop;
         async->music = NULL;
+        async->rwop = NULL;
     }
 
     // Finish cleanup
+    if(async->rwop)
+        SDL_FreeRW(async->rwop);
     lua_pushvalue(L, 1);
     lua_pushnil(L);
     lua_settable(L, LUA_REGISTRYINDEX);
@@ -158,14 +172,9 @@ static int l_load_music_async_callback(lua_State *L)
 static int load_music_async_thread(void* arg)
 {
     load_music_async_t *async = (load_music_async_t*)arg;
-    async->music = Mix_LoadMUS_RW(async->rwop, 1);
-    async->rwop = NULL;
+    async->music = Mix_LoadMUS_RW(async->rwop);
     if(async->music == NULL)
-    {
-        size_t iLen = strlen(Mix_GetError()) + 1;
-        async->err = (char*)malloc(iLen);
-        memcpy(async->err, Mix_GetError(), iLen);
-    }
+        async->err = strdup(Mix_GetError());
     SDL_Event e;
     e.type = SDL_USEREVENT_CPCALL;
     e.user.data1 = (void*)l_load_music_async_callback;
@@ -214,8 +223,7 @@ static int l_load_music_async(lua_State *L)
         call the callback and remove the new entries from the registry.
     */
 
-    SDL_CreateThread(load_music_async_thread, "music_thread", async);
-
+    SDL_CreateThread(load_music_async_thread, async);
     return 0;
 }
 
@@ -224,7 +232,7 @@ static int l_load_music(lua_State *L)
     size_t iLength;
     const unsigned char *pData = luaT_checkfile(L, 1, &iLength);
     SDL_RWops* rwop = SDL_RWFromConstMem(pData, (int)iLength);
-    Mix_Music* pMusic = Mix_LoadMUS_RW(rwop, 1);
+    Mix_Music* pMusic = Mix_LoadMUS_RW(rwop);
     if(pMusic == NULL)
     {
         lua_pushnil(L);
@@ -233,6 +241,7 @@ static int l_load_music(lua_State *L)
     }
     music_t* pLMusic = luaT_stdnew<music_t>(L, luaT_environindex, true);
     pLMusic->pMusic = pMusic;
+    pLMusic->pRWop = rwop;
     lua_pushvalue(L, 1);
     luaT_setenvfield(L, -2, "data");
     return 1;

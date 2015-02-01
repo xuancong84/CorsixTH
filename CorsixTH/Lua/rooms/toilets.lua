@@ -37,9 +37,6 @@ room.floor_tile = 21
 
 class "ToiletRoom" (Room)
 
----@type ToiletRoom
-local ToiletRoom = _G["ToiletRoom"]
-
 room.free_loos = 0
 
 function ToiletRoom:ToiletRoom(...)

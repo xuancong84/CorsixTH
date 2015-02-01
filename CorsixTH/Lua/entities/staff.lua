@@ -21,9 +21,6 @@ SOFTWARE. --]]
 --! A Doctor, Nurse, Receptionist, Handyman, or Surgeon
 class "Staff" (Humanoid)
 
----@type Staff
-local Staff = _G["Staff"]
-
 --!param ... Arguments to base class constructor.
 function Staff:Staff(...)
   self:Humanoid(...)
@@ -386,7 +383,7 @@ end
 function Staff:die()
   self:setHospital(nil)
   if self.task then
-    -- If the staff member had a task outstanding, unassigning them from that task.
+    -- If the staff member had a task outstanding, unassigning them from that task. 
     -- Tasks with no handyman assigned will be eligable for reassignment by the hospital.
     self.task.assignedHandyman = nil
     self.task = nil

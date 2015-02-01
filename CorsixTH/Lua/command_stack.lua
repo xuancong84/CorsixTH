@@ -20,9 +20,6 @@ SOFTWARE. --]]
 
 class "CommandStack"
 
----@type CommandStack
-local CommandStack = _G["CommandStack"]
-
 function CommandStack:CommandStack()
   self.undo_stack = {}
   self.redo_stack = {}

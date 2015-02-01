@@ -20,9 +20,6 @@ SOFTWARE. --]]
 
 class "UIResearch" (UIFullscreen)
 
----@type UIResearch
-local UIResearch = _G["UIResearch"]
-
 local research_categories = {
   "cure",
   "diagnosis",
@@ -136,9 +133,9 @@ end
 function UIResearch:adjustResearch(area, mode)
   local res = self.research
   local amount = 1
-  if self.ui.app.key_modifiers.ctrl then
+  if self.buttons_down.ctrl then
     amount = amount * 20
-  elseif self.ui.app.key_modifiers.shift then
+  elseif self.buttons_down.shift then
     amount = amount * 5
   end
   if mode == "less" then
